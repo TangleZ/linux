@@ -142,6 +142,28 @@ config ARCH_MVEBU
 	   - Armada 7K SoC Family
 	   - Armada 8K SoC Family
 
+config ARCH_MXC
+	bool "ARMv8 based NXP i.MX SoC family"
+	select GPIOLIB
+	select PINCTRL
+	select PM
+	select PM_GENERIC_DOMAINS
+	select SOC_BUS
+	help
+	  This enables support for the ARMv8 based SoCs in the
+	  NXP i.MX family.
+
+config SOC_IMX8QXP
+	bool "i.MX8QXP"
+	depends on ARCH_MXC
+	select IMX_MBOX
+	select IMX_SCU
+	select IMX_SCU_PD
+	select MXC_CLK_SCU
+	select PINCTRL_IMX8QXP
+	help
+	  This enables support for NXP i.MX8QXP SoC.
+
 config ARCH_QCOM
 	bool "Qualcomm Platforms"
 	select GPIOLIB
