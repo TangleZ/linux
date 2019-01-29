@@ -644,6 +644,7 @@ static int sof_pcm_probe(struct snd_soc_component *component)
 	const char *tplg_filename;
 	int ret, err;
 
+	return 0;
 	/* load the default topology */
 	sdev->component = component;
 	tplg_filename = plat_data->machine->sof_tplg_filename;
