@@ -22,4 +22,5 @@ obj-$(CONFIG_SND_SOC_SOF_SPI) += sof-spi-dev.o
 obj-$(CONFIG_SND_SOC_SOF_SPIDSP) += snd-sof-spi.o
 
 obj-$(CONFIG_SND_SOC_SOF_INTEL_TOPLEVEL) += intel/
+obj-$(CONFIG_SND_SOC_SOF_IMX_TOPLEVEL) += imx/
 obj-$(CONFIG_SND_SOC_SOF_XTENSA) += xtensa/
