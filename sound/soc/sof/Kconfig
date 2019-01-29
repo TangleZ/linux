@@ -35,6 +35,9 @@ config SND_SOC_SOF_ACPI
 	  Say Y if you need this option
           If unsure select "N".
 
+config SND_SOC_SOF_DT
+	tristate "SOF DT enumeration support"
+
 config SND_SOC_SOF_SPI
 	tristate "SOF SPI support"
 	select SPI
