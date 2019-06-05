@@ -234,6 +234,8 @@
 
 static DEFINE_IDA(fsl_lpuart_ida);
 
+static int x = 0;
+
 struct lpuart_port {
 	struct uart_port	port;
 	struct clk		*clk;
@@ -2360,6 +2362,7 @@ static int lpuart_probe(struct platform_device *pdev)
 		dev_info(sport->port.dev, "DMA rx channel request failed, "
 				"operating without rx DMA\n");
 
+	x++;
 	return 0;
 
 failed_attach_port:
@@ -2533,6 +2536,7 @@ static int __init lpuart_serial_init(void)
 		return ret;
 
 	ret = platform_driver_register(&lpuart_driver);
+
 	if (ret)
 		uart_unregister_driver(&lpuart_reg);
 
@@ -2545,6 +2549,15 @@ static void __exit lpuart_serial_exit(void)
 	platform_driver_unregister(&lpuart_driver);
 	uart_unregister_driver(&lpuart_reg);
 }
+
+int dummy_lpuart(void) {
+	if (x < 2)
+		return -EPROBE_DEFER;
+	else
+		return 0;
+}
+
+EXPORT_SYMBOL(dummy_lpuart);
 
 module_init(lpuart_serial_init);
 module_exit(lpuart_serial_exit);
