@@ -601,6 +601,8 @@ capture:
 static int sof_pcm_dai_link_fixup(struct snd_soc_pcm_runtime *rtd,
 				  struct snd_pcm_hw_params *params)
 {
+	return 0;
+
 	struct snd_interval *rate = hw_param_interval(params,
 			SNDRV_PCM_HW_PARAM_RATE);
 	struct snd_interval *channels = hw_param_interval(params,
