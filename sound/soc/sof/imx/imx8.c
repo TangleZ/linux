@@ -191,6 +191,14 @@ static int imx8_probe(struct snd_sof_dev *sdev)
 	int ret = 0;
 	int i;
 
+	/* UGLY HACK to allow lpuart2 debug for dsp */
+	/* we need to start DSP after lpuart2 is enabled otherwise
+	 * dsp will write into lpuart2 registers and will crash */
+	static int x;
+
+	if (x++ < 3)
+		return -EPROBE_DEFER;
+
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
