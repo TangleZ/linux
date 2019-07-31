@@ -30,6 +30,7 @@
 		mmc2 = &usdhc3;
 		mu1 = &lsio_mu1;
 		serial0 = &adma_lpuart0;
+		serial2 = &adma_lpuart2;
 	};
 
 	cpus {
@@ -268,6 +269,8 @@
 			clocks = <&adma_lpcg IMX_ADMA_LPCG_UART2_IPG_CLK>,
 				 <&adma_lpcg IMX_ADMA_LPCG_UART2_BAUD_CLK>;
 			clock-names = "ipg", "baud";
+			assigned-clocks =  <&clk IMX_ADMA_UART2_CLK>;
+			assigned-clock-rates = <80000000>;
 			power-domains = <&pd IMX_SC_R_UART_2>;
 			status = "disabled";
 		};
