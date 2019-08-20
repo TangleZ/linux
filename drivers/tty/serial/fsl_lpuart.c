@@ -418,7 +418,7 @@ static unsigned int lpuart_get_baud_clk_rate(struct lpuart_port *sport)
 }
 
 #define lpuart_enable_clks(x)	__lpuart_enable_clks(x, true)
-#define lpuart_disable_clks(x)	__lpuart_enable_clks(x, false)
+#define lpuart_disable_clks(x)
 
 static int lpuart_hw_reset(struct lpuart_port *sport)
 {
