@@ -191,6 +191,12 @@ static int imx8_probe(struct snd_sof_dev *sdev)
 	int ret = 0;
 	int i;
 
+	pr_info("imx8_probe\n");
+
+	static int x;
+	if (x++ < 3)
+		return -EPROBE_DEFER;
+
 	priv = devm_kzalloc(&pdev->dev, sizeof(*priv), GFP_KERNEL);
 	if (!priv)
 		return -ENOMEM;
