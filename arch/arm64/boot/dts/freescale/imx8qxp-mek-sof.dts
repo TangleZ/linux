@@ -27,6 +27,12 @@
 		audio-platform = <&dsp>;
 		status = "disabled";
 	};
+
+	sof-mach {
+		sof-firmware-name="sof-imx8.ri";
+		sof-topology-name="sof-imx8-nocodec.tplg";
+		mach-drv-name="imx-cs42888";
+	};
 };
 
 &edma0 {
@@ -60,6 +66,8 @@
 
 &dsp {
 	compatible = "fsl,imx8qxp-dsp";
+	esai-controller = <&esai0>; 
+	audio-codec = <&cs42888>;
 	reg = <0x596e8000 0x88000>;
 	clocks = <&esai0_lpcg 1>,
 		<&esai0_lpcg 0>,
@@ -133,4 +141,5 @@
 			  <&clk IMX_SC_R_AUDIO_PLL_0 IMX_SC_PM_CLK_MST_BUS>,
 			  <&mclkout0_lpcg 0>;
 	assigned-clock-rates = <786432000>, <49152000>, <12288000>, <12288000>;
+	status="okay";
 };
