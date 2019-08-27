@@ -104,6 +104,10 @@
 		<&lsio_mu13 3 0>,
 		<&lsio_mu13 3 1>;
 	memory-region = <&dsp_reserved>;
+	firmware-name="sof-imx8.ri";
+	topology-name="sof-imx8-nocodec.tplg";
+	drv-name="asoc-simple-card";
+
 	status = "okay";
 };
 

@@ -25,6 +25,7 @@
 		cpu-dai = <&dspaudio>;
 		audio-codec = <&cs42888>;
 		audio-platform = <&dsp>;
+		status="disabled";
 	};
 };
 
@@ -78,7 +79,9 @@
 			<&esai0_lpcg 0>;
 	assigned-clock-parents = <&aud_pll_div0_lpcg 0>;
 	assigned-clock-rates = <0>, <786432000>, <49152000>, <12288000>, <49152000>;
-	fsl,dsp-firmware = "imx/dsp/hifi4.bin";
+	firmware-name="sof-imx8.ri";
+	topology-name="sof-imx8-nocodec.tplg";
+	drv-name="asoc-simple-card";
 	power-domains = <&pd IMX_SC_R_MU_13A>,
 			<&pd IMX_SC_R_MU_13B>,
 			<&pd IMX_SC_R_IRQSTR_DSP>,
@@ -98,6 +101,7 @@
 			<&pd IMX_SC_R_DMA_0_CH3>,
 			<&pd IMX_SC_R_DMA_0_CH4>,
 			<&pd IMX_SC_R_DMA_0_CH5>;
+	status="okay";
 };
 
 &esai0 {
