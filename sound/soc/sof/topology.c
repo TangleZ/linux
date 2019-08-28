@@ -2356,10 +2356,13 @@ static int sof_set_dai_config(struct snd_sof_dev *sdev, u32 size,
 	struct snd_sof_dai *dai;
 	int found = 0;
 
+	pr_info("sof: sof_set_dai_config -- enter, link name %s\n", link->name);
+
 	list_for_each_entry(dai, &sdev->dai_list, list) {
 		if (!dai->name)
 			continue;
-
+		pr_info("--> dai name %s link name %s\n",
+			dai->name, link->name);
 		if (strcmp(link->name, dai->name) == 0) {
 			dai->dai_config = kmemdup(config, size, GFP_KERNEL);
 			if (!dai->dai_config)
@@ -2479,6 +2482,78 @@ static int sof_link_esai_load(struct snd_soc_component *scomp, int index,
 			      struct sof_ipc_dai_config *config)
 {
 	/*TODO: Add implementation */
+
+
+	struct snd_sof_dev *sdev = snd_soc_component_get_drvdata(scomp);
+	struct snd_soc_tplg_private *private = &cfg->priv;
+	struct sof_ipc_reply reply;
+	u32 size = sizeof(*config);
+	int ret;
+	
+	pr_info("sof: esai_load...\n");
+	/* handle master/slave and inverted clocks */
+	sof_dai_set_format(hw_config, config);
+
+	/* init IPC */
+	memset(&config->ssp, 0, sizeof(struct sof_ipc_dai_ssp_params));
+	config->hdr.size = size;
+#if 0
+	ret = sof_parse_tokens(scomp, &config->ssp, ssp_tokens,
+			       ARRAY_SIZE(ssp_tokens), private->array,
+			       le32_to_cpu(private->size));
+	if (ret != 0) {
+		dev_err(sdev->dev, "error: parse ssp tokens failed %d\n",
+			le32_to_cpu(private->size));
+		return ret;
+	}
+
+	config->ssp.mclk_rate = le32_to_cpu(hw_config->mclk_rate);
+	config->ssp.bclk_rate = le32_to_cpu(hw_config->bclk_rate);
+	config->ssp.fsync_rate = le32_to_cpu(hw_config->fsync_rate);
+	config->ssp.tdm_slots = le32_to_cpu(hw_config->tdm_slots);
+	config->ssp.tdm_slot_width = le32_to_cpu(hw_config->tdm_slot_width);
+	config->ssp.mclk_direction = hw_config->mclk_direction;
+	config->ssp.rx_slots = le32_to_cpu(hw_config->rx_slots);
+	config->ssp.tx_slots = le32_to_cpu(hw_config->tx_slots);
+
+	dev_dbg(sdev->dev, "tplg: config SSP%d fmt 0x%x mclk %d bclk %d fclk %d width (%d)%d slots %d mclk id %d quirks %d\n",
+		config->dai_index, config->format,
+		config->ssp.mclk_rate, config->ssp.bclk_rate,
+		config->ssp.fsync_rate, config->ssp.sample_valid_bits,
+		config->ssp.tdm_slot_width, config->ssp.tdm_slots,
+		config->ssp.mclk_id, config->ssp.quirks);
+
+	/* validate SSP fsync rate and channel count */
+	if (config->ssp.fsync_rate < 8000 || config->ssp.fsync_rate > 192000) {
+		dev_err(sdev->dev, "error: invalid fsync rate for SSP%d\n",
+			config->dai_index);
+		return -EINVAL;
+	}
+
+	if (config->ssp.tdm_slots < 1 || config->ssp.tdm_slots > 8) {
+		dev_err(sdev->dev, "error: invalid channel count for SSP%d\n",
+			config->dai_index);
+		return -EINVAL;
+	}
+
+	/* send message to DSP */
+	ret = sof_ipc_tx_message(sdev->ipc,
+				 config->hdr.cmd, config, size, &reply,
+				 sizeof(reply));
+
+	if (ret < 0) {
+		dev_err(sdev->dev, "error: failed to set DAI config for SSP%d\n",
+			config->dai_index);
+		return ret;
+	}
+#endif
+	/* set config for all DAI's with name matching the link name */
+	ret = sof_set_dai_config(sdev, size, link, config);
+	if (ret < 0)
+		dev_err(sdev->dev, "error: failed to save DAI config for SSP%d\n",
+			config->dai_index);
+
+	pr_info("sof: esai load --exit\n");
 	return 0;
 }
 
@@ -2723,12 +2798,13 @@ static int sof_link_load(struct snd_soc_component *scomp, int index,
 	int ret;
 	int i = 0;
 
+	pr_info("sof: sof_link load, platform %s\n", link->platforms->name);
+
 	if (!link->platforms) {
 		dev_err(sdev->dev, "error: no platforms\n");
 		return -EINVAL;
 	}
 	link->platforms->name = dev_name(sdev->dev);
-
 	/*
 	 * Set nonatomic property for FE dai links as their trigger action
 	 * involves IPC's.
