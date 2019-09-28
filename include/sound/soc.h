@@ -1148,6 +1148,23 @@ struct snd_soc_pcm_runtime {
 #define for_each_rtd_codec_dai_rollback(rtd, i, dai)		\
 	for (; ((--i) >= 0) && ((dai) = rtd->codec_dais[i]);)
 
+/**
+ * snd_soc_fw_mach: common fields for DT/ACPI machine descriptor.
+ *
+ * @drv_name: machine driver name
+ * @fw_filename: firmware file name. Used when SOF is not enabled.
+ * @sof_fw_filename: Sound Open Firmware file name, if enabled
+ * @sof_tplg_filename: Sound Open Firmware topology file name, if enabled
+ * @pdata: intended for platform data or machine specific-ops. This structure
+ *  is not constant since this field may be updated at run-time
+ */
+struct snd_soc_fw_mach {
+	const char *drv_name;
+	const char *fw_filename;
+	const char *sof_fw_filename;
+	const char *sof_tplg_filename;
+	void *pdata;
+};
 
 /* mixer control */
 struct soc_mixer_control {

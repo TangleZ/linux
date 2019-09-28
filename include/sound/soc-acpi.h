@@ -9,6 +9,7 @@
 #include <linux/stddef.h>
 #include <linux/acpi.h>
 #include <linux/mod_devicetable.h>
+#include <sound/soc.h>
 
 struct snd_soc_acpi_package_context {
 	char *name;           /* package name */
@@ -74,31 +75,24 @@ struct snd_soc_acpi_mach_params {
  * A platform supported by legacy and Sound Open Firmware (SOF) would expose
  * all firmware/topology related fields.
  *
+ * @common: fields that are common for ACPI / DT (see @snd_soc_fw_mach)
  * @id: ACPI ID (usually the codec's) used to find a matching machine driver.
  * @drv_name: machine driver name
- * @fw_filename: firmware file name. Used when SOF is not enabled.
  * @board: board name
  * @machine_quirk: pointer to quirk, usually based on DMI information when
  * ACPI ID alone is not sufficient, wrong or misleading
  * @quirk_data: data used to uniquely identify a machine, usually a list of
  * audio codecs whose presence if checked with ACPI
- * @pdata: intended for platform data or machine specific-ops. This structure
- *  is not constant since this field may be updated at run-time
- * @sof_fw_filename: Sound Open Firmware file name, if enabled
- * @sof_tplg_filename: Sound Open Firmware topology file name, if enabled
- */
+  */
 /* Descriptor for SST ASoC machine driver */
 struct snd_soc_acpi_mach {
+	/* this must be first */
+	struct snd_soc_fw_mach common;
 	const u8 id[ACPI_ID_LEN];
-	const char *drv_name;
-	const char *fw_filename;
 	const char *board;
 	struct snd_soc_acpi_mach * (*machine_quirk)(void *arg);
 	const void *quirk_data;
-	void *pdata;
 	struct snd_soc_acpi_mach_params mach_params;
-	const char *sof_fw_filename;
-	const char *sof_tplg_filename;
 };
 
 #define SND_SOC_ACPI_MAX_CODECS 3

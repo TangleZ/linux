@@ -173,8 +173,8 @@ static int sof_acpi_probe(struct platform_device *pdev)
 	if (!mach) {
 		dev_warn(dev, "warning: No matching ASoC machine driver found\n");
 	} else {
-		sof_pdata->fw_filename = mach->sof_fw_filename;
-		sof_pdata->tplg_filename = mach->sof_tplg_filename;
+		sof_pdata->fw_filename = mach->common.sof_fw_filename;
+		sof_pdata->tplg_filename = mach->common.sof_tplg_filename;
 	}
 #endif
 
@@ -183,7 +183,7 @@ static int sof_acpi_probe(struct platform_device *pdev)
 		mach->mach_params.acpi_ipc_irq_index = desc->irqindex_host_ipc;
 	}
 
-	sof_pdata->machine = mach;
+	sof_pdata->machine = (struct snd_soc_fw_mach *)mach;
 	sof_pdata->desc = desc;
 	sof_pdata->dev = &pdev->dev;
 	sof_pdata->platform = dev_name(dev);

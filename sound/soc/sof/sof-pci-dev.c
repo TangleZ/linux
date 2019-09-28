@@ -281,13 +281,13 @@ static int sof_pci_probe(struct pci_dev *pci,
 		dev_warn(dev, "warning: No matching ASoC machine driver found\n");
 	} else {
 		mach->mach_params.platform = dev_name(dev);
-		sof_pdata->fw_filename = mach->sof_fw_filename;
-		sof_pdata->tplg_filename = mach->sof_tplg_filename;
+		sof_pdata->fw_filename = mach->common.sof_fw_filename;
+		sof_pdata->tplg_filename = mach->common.sof_tplg_filename;
 	}
 #endif /* CONFIG_SND_SOC_SOF_FORCE_NOCODEC_MODE */
 
 	sof_pdata->name = pci_name(pci);
-	sof_pdata->machine = mach;
+	sof_pdata->machine = (struct snd_soc_fw_mach *)mach;
 	sof_pdata->desc = (struct sof_dev_desc *)pci_id->driver_data;
 	sof_pdata->dev = dev;
 	sof_pdata->platform = dev_name(dev);
