@@ -8,6 +8,7 @@
 #include <linux/firmware.h>
 #include <linux/module.h>
 #include <linux/pm_runtime.h>
+#include <sound/soc-of.h>
 #include <sound/sof.h>
 
 #include "ops.h"
@@ -24,6 +25,28 @@ static struct sof_dev_desc sof_of_imx8qxp_desc = {
 	.ops = &sof_imx8_ops,
 };
 #endif
+
+int sof_of_mach_parse(struct platform_device *pdev, struct snd_soc_of_mach *mach)
+{
+	struct device_node *np;
+
+	np = of_find_node_by_name(NULL, "sof-mach");
+	if (!np)
+		return -ENODEV;
+
+	pr_info("sof: read sof mach\n");
+
+	of_property_read_string(np, "mach-drv-name",
+				 &mach->common.drv_name);
+	of_property_read_string(np, "sof-firmware-name",
+				 &mach->common.sof_fw_filename);
+	of_property_read_string(np, "sof-tplg-name",
+				 &mach->common.sof_tplg_filename);
+
+	pr_info("sof: read mach drv name %s\n", mach->common.drv_name);
+
+	return 0;
+}
 
 static const struct dev_pm_ops sof_of_pm = {
 	SET_SYSTEM_SLEEP_PM_OPS(snd_sof_suspend, snd_sof_resume)
@@ -44,7 +67,7 @@ static int sof_of_probe(struct platform_device *pdev)
 	struct device *dev = &pdev->dev;
 	const struct sof_dev_desc *desc;
 	/*TODO: create a generic snd_soc_xxx_mach */
-	struct snd_soc_acpi_mach *mach;
+	struct snd_soc_fw_mach *mach;
 	struct snd_sof_pdata *sof_pdata;
 	const struct snd_sof_dsp_ops *ops;
 	int ret;
@@ -76,17 +99,30 @@ static int sof_of_probe(struct platform_device *pdev)
 	if (ret < 0)
 		return ret;
 #else
+	pr_info("sof: using codec cs422888\n");
+
 	/* TODO: implement case where we actually have a codec */
-	return -ENODEV;
+	mach = devm_kzalloc(dev, sizeof(*mach), GFP_KERNEL);
+	if (!mach)
+		return -ENOMEM;
+	sof_of_mach_parse(pdev, (struct snd_soc_of_mach *) mach);
+
 #endif
 
+#if 0
 	if (mach)
 		mach->mach_params.platform = dev_name(dev);
 
+	pr_info("sof: platform name %s\n", dev_name(dev));
+#endif
 	sof_pdata->machine = mach;
+	sof_pdata->hw_pdata = pdev;
 	sof_pdata->desc = desc;
 	sof_pdata->dev = &pdev->dev;
 	sof_pdata->platform = dev_name(dev);
+
+	sof_pdata->fw_filename = desc->nocodec_fw_filename;
+	sof_pdata->tplg_filename = desc->nocodec_tplg_filename;
 
 	/* TODO: read alternate fw and tplg filenames from DT */
 	sof_pdata->fw_filename_prefix = sof_pdata->desc->default_fw_path;
