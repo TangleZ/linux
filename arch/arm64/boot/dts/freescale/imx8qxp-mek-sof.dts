@@ -5,7 +5,7 @@
 
 / {
 	sound-cs42888 {
-		status = "disabled";
+		status = "okay";
 	};
 
 	sound-wm8960 {
