@@ -18,6 +18,7 @@
 #include <linux/firmware/imx/ipc.h>
 #include <linux/firmware/imx/dsp.h>
 
+#include <linux/clk.h>
 #include <linux/firmware/imx/svc/misc.h>
 #include <dt-bindings/firmware/imx/rsrc.h>
 #include "../ops.h"
@@ -178,6 +179,8 @@ static int imx8_run(struct snd_sof_dev *sdev)
 	return 0;
 }
 
+static struct clk *esai_ipg_clk, *esai_mclk;
+
 static int imx8_probe(struct snd_sof_dev *sdev)
 {
 	struct platform_device *pdev =
@@ -246,6 +249,17 @@ static int imx8_probe(struct snd_sof_dev *sdev)
 			ret);
 		goto exit_unroll_pm;
 	}
+
+	esai_ipg_clk = devm_clk_get(&pdev->dev, "esai_ipg");
+	if (IS_ERR(esai_ipg_clk)) {
+		pr_err("IMX FATAL FLAW esai_ipg_clk");
+		esai_ipg_clk = NULL;
+	}
+
+	esai_mclk = devm_clk_get(&pdev->dev, "esai_mclk");
+
+	ret = clk_prepare_enable(esai_ipg_clk);
+	ret = clk_prepare_enable(esai_mclk);
 
 	priv->ipc_dev = platform_device_register_data(sdev->dev, "imx-dsp",
 						      PLATFORM_DEVID_NONE,

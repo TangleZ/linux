@@ -149,7 +149,11 @@ static void sof_get_windows(struct snd_sof_dev *sdev)
 						window_offset +
 						elem->offset,
 						elem->size, "etrace",
+#ifdef CONFIG_SND_SOC_SOF_IMX8
+						SOF_DEBUGFS_ACCESS_ALWAYS);
+#else
 						SOF_DEBUGFS_ACCESS_D0_ONLY);
+#endif
 			break;
 		case SOF_IPC_REGION_DEBUG:
 			snd_sof_debugfs_io_item(sdev,

@@ -376,6 +376,7 @@ static void __init setup_command_line(char *command_line)
 {
 	size_t len = strlen(boot_command_line) + 1;
 
+	pr_warn("cmdline: %s\n", command_line);
 	saved_command_line = memblock_alloc(len, SMP_CACHE_BYTES);
 	if (!saved_command_line)
 		panic("%s: Failed to allocate %zu bytes\n", __func__, len);

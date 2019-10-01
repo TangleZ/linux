@@ -334,9 +334,12 @@ void snd_sof_ipc_msgs_rx(struct snd_sof_dev *sdev)
 	u32 cmd, type;
 	int err = 0;
 
+	dev_dbg(sdev->dev, "entered snd_sof_ipc_msgs_rx");
 	/* read back header */
 	snd_sof_ipc_msg_data(sdev, NULL, &hdr, sizeof(hdr));
+	dev_dbg(sdev->dev, "before ipc_log_header");
 	ipc_log_header(sdev->dev, "ipc rx", hdr.cmd);
+	dev_dbg(sdev->dev, "after ipc_log_header");
 
 	cmd = hdr.cmd & SOF_GLB_TYPE_MASK;
 	type = hdr.cmd & SOF_CMD_TYPE_MASK;
@@ -347,6 +350,7 @@ void snd_sof_ipc_msgs_rx(struct snd_sof_dev *sdev)
 		dev_err(sdev->dev, "error: ipc reply unknown\n");
 		break;
 	case SOF_IPC_FW_READY:
+		dev_dbg(sdev->dev, "SOF_IPC_FW_READY received");
 		/* check for FW boot completion */
 		if (!sdev->boot_complete) {
 			err = sof_ops(sdev)->fw_ready(sdev, cmd);
@@ -370,12 +374,15 @@ void snd_sof_ipc_msgs_rx(struct snd_sof_dev *sdev)
 	case SOF_IPC_GLB_TPLG_MSG:
 	case SOF_IPC_GLB_PM_MSG:
 	case SOF_IPC_GLB_COMP_MSG:
+		dev_dbg(sdev->dev, "SOF_IPC_GLB_* received");
 		break;
 	case SOF_IPC_GLB_STREAM_MSG:
+		dev_dbg(sdev->dev, "SOF_IPC_STREAM_MSG received");
 		/* need to pass msg id into the function */
 		ipc_stream_message(sdev, hdr.cmd);
 		break;
 	case SOF_IPC_GLB_TRACE_MSG:
+		dev_dbg(sdev->dev, "SOF_IPC_TRACE_MSG received");
 		ipc_trace_message(sdev, type);
 		break;
 	default:
@@ -383,6 +390,7 @@ void snd_sof_ipc_msgs_rx(struct snd_sof_dev *sdev)
 		break;
 	}
 
+	dev_dbg(sdev->dev, "Before saying ipc rx done");
 	ipc_log_header(sdev->dev, "ipc rx done", hdr.cmd);
 }
 EXPORT_SYMBOL(snd_sof_ipc_msgs_rx);
@@ -419,7 +427,9 @@ static void ipc_period_elapsed(struct snd_sof_dev *sdev, u32 msg_id)
 	struct snd_sof_pcm *spcm;
 	int direction;
 
+	dev_dbg(sdev->dev, "ipc_period_elapsed");
 	spcm = snd_sof_find_spcm_comp(sdev, msg_id, &direction);
+	dev_dbg(sdev->dev, "ipc_period_elapsed got spcm");
 	if (!spcm) {
 		dev_err(sdev->dev,
 			"error: period elapsed for unknown stream, msg_id %d\n",
@@ -428,6 +438,7 @@ static void ipc_period_elapsed(struct snd_sof_dev *sdev, u32 msg_id)
 	}
 
 	stream = &spcm->stream[direction];
+	dev_dbg(sdev->dev, "ipc_period_elapsed stream: %px", stream);
 	snd_sof_ipc_msg_data(sdev, stream->substream, &posn, sizeof(posn));
 
 	dev_dbg(sdev->dev, "posn : host 0x%llx dai 0x%llx wall 0x%llx\n",
@@ -435,9 +446,23 @@ static void ipc_period_elapsed(struct snd_sof_dev *sdev, u32 msg_id)
 
 	memcpy(&stream->posn, &posn, sizeof(posn));
 
+	dev_dbg(sdev->dev, "ipc_period_elapsed after memcpy");
+	if (!stream->substream) {
+		dev_err(sdev->dev, "ipc_period_elapsed substream null");
+		return;
+	}
+	if (!stream->substream->runtime) {
+		dev_err(sdev->dev, "ipc_period_elapsed runtime null");
+		return;
+	}
 	/* only inform ALSA for period_wakeup mode */
-	if (!stream->substream->runtime->no_period_wakeup)
+	if (!stream->substream->runtime->no_period_wakeup) {
+		dev_dbg(sdev->dev, "Will call snd_sof_pcm_period_elapsed");
 		snd_sof_pcm_period_elapsed(stream->substream);
+	} else {
+		dev_dbg(sdev->dev, "Will not call snd_sof_pcm_period_elapsed");
+	}
+	dev_dbg(sdev->dev, "ipc_period_elapsed after snd_sof_pcm_period_elapsed");
 }
 
 /* DSP notifies host of an XRUN within FW */
@@ -475,9 +500,12 @@ static void ipc_stream_message(struct snd_sof_dev *sdev, u32 msg_cmd)
 	u32 msg_type = msg_cmd & SOF_CMD_TYPE_MASK;
 	u32 msg_id = SOF_IPC_MESSAGE_ID(msg_cmd);
 
+	dev_dbg(sdev->dev, "Entered ipc_stream_message; msg_type: %d", msg_type);
 	switch (msg_type) {
 	case SOF_IPC_STREAM_POSITION:
+		dev_dbg(sdev->dev, "ipc_period_elapsed about to be called");
 		ipc_period_elapsed(sdev, msg_id);
+		dev_dbg(sdev->dev, "ipc_period_elapsed has been called");
 		break;
 	case SOF_IPC_STREAM_TRIG_XRUN:
 		ipc_xrun(sdev, msg_id);
