@@ -270,7 +270,7 @@ static int sof_pci_probe(struct pci_dev *pci,
 		ret = -ENOMEM;
 		goto release_regions;
 	}
-	ret = sof_nocodec_setup(dev, sof_pdata, mach, desc, ops);
+	ret = sof_nocodec_setup(dev, sof_pdata, (struct snd_soc_fw_mach *)mach, desc, ops);
 	if (ret < 0)
 		goto release_regions;
 

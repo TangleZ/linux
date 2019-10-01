@@ -31,7 +31,7 @@
 	sof-mach {
 		sof-firmware-name="sof-imx8.ri";
 		sof-topology-name="sof-imx8-nocodec.tplg";
-		mach-drv-name="imx-cs42888";
+		mach-drv-name="imx-sample";
 	};
 };
 
@@ -66,6 +66,8 @@
 
 &dsp {
 	compatible = "fsl,imx8qxp-dsp";
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_esai0>;
 	esai-controller = <&esai0>; 
 	audio-codec = <&cs42888>;
 	reg = <0x596e8000 0x88000>;

@@ -42,7 +42,7 @@ static const struct snd_soc_dapm_route sample_audio_map[] = {
        {"AIN1R", NULL, "Line In Jack"},
        {"AIN2L", NULL, "Line In Jack"},
        {"AIN2R", NULL, "Line In Jack"},
-       {"Playback",  NULL, "ESAI0-Codec"},/* dai route for be and fe */
+       {"Playback",  NULL, "ESAI0.OUT"},/* dai route for be and fe */
        {"CPU-Capture",  NULL, "Capture"},
 };
 
@@ -209,8 +209,8 @@ static struct snd_soc_card sample_card = {
 	.num_dapm_widgets = ARRAY_SIZE(sample_widgets),
 	.dapm_routes = sample_audio_map,
 	.num_dapm_routes = ARRAY_SIZE(sample_audio_map),
-	.controls = sample_controls,
-	.num_controls = ARRAY_SIZE(sample_controls),
+	//.controls = sample_controls,
+	//.num_controls = ARRAY_SIZE(sample_controls),
 };
 
 static int snd_sample_probe(struct platform_device *pdev)
