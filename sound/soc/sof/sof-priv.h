@@ -80,6 +80,7 @@ struct snd_sof_dsp_ops {
 	/* probe and remove */
 	int (*probe)(struct snd_sof_dev *sof_dev); /* mandatory */
 	int (*remove)(struct snd_sof_dev *sof_dev); /* optional */
+	int (*device_register)(struct snd_sof_dev *sof_dev);
 
 	/* DSP core boot / reset */
 	int (*run)(struct snd_sof_dev *sof_dev); /* mandatory */

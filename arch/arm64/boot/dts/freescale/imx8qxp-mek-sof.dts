@@ -4,9 +4,6 @@
 #include "imx8qxp-mek.dts"
 
 / {
-	sound-cs42888 {
-		status = "okay";
-	};
 
 	sound-wm8960 {
 		status = "disabled";
@@ -34,6 +31,11 @@
 		mach-drv-name="imx-sample";
 	};
 };
+&sound_cs42888 {
+		status = "disabled";
+		//compatible = "no-name";
+};
+
 
 &edma0 {
 	compatible = "fsl,imx8qm-edma";
@@ -68,8 +70,6 @@
 	compatible = "fsl,imx8qxp-dsp";
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_esai0>;
-	esai-controller = <&esai0>; 
-	audio-codec = <&cs42888>;
 	reg = <0x596e8000 0x88000>;
 	clocks = <&esai0_lpcg 1>,
 		<&esai0_lpcg 0>,
@@ -116,9 +116,15 @@
 	memory-region = <&dsp_reserved>;
 	firmware-name="sof-imx8.ri";
 	topology-name="sof-imx8-nocodec.tplg";
-	drv-name="asoc-simple-card";
-
-	status = "okay";
+	mach_drv: mach_drv {
+		compatible = "fsl,imx-audio-cs42888";
+		model = "imx-cs42888";
+		esai-controller = <&esai0>;
+		audio-codec = <&cs42888>;
+		asrc-controller = <&asrc0>;
+		codec-rpmsg;
+		status = "okay";
+	};
 };
 
 &esai0 {

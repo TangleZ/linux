@@ -49,7 +49,7 @@ struct snd_sof_pdata {
 	/* machine */
 	struct platform_device *pdev_mach;
 	const struct snd_soc_fw_mach *machine;
-
+	struct device_node *mach_np;
 	void *hw_pdata;
 };
 

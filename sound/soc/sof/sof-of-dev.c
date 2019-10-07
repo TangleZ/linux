@@ -70,6 +70,7 @@ static int sof_of_probe(struct platform_device *pdev)
 	struct snd_soc_fw_mach *mach;
 	struct snd_sof_pdata *sof_pdata;
 	const struct snd_sof_dsp_ops *ops;
+	struct device_node *mach_np;
 	int ret;
 
 	dev_info(&pdev->dev, "DT DSP detected");
@@ -100,13 +101,13 @@ static int sof_of_probe(struct platform_device *pdev)
 		return ret;
 #else
 	pr_info("sof: using codec cs422888\n");
-
+#if 0
 	/* TODO: implement case where we actually have a codec */
 	mach = devm_kzalloc(dev, sizeof(*mach), GFP_KERNEL);
 	if (!mach)
 		return -ENOMEM;
 	sof_of_mach_parse(pdev, (struct snd_soc_of_mach *) mach);
-
+#endif
 #endif
 
 #if 0
@@ -115,11 +116,22 @@ static int sof_of_probe(struct platform_device *pdev)
 
 	pr_info("sof: platform name %s\n", dev_name(dev));
 #endif
-	sof_pdata->machine = mach;
-	sof_pdata->hw_pdata = pdev;
+#if 0
+	mach_np = of_parse_phandle(pdev->dev.of_node, "mach-drv", 0);
+	if (!mach_np) {
+		pr_info("xxxx: canniot read NP\n");
+		return -EINVAL;
+	}
+#endif
+	pr_info("xxx: Got mach np %pOF\n", mach_np);
+
+	//sof_pdata->pdev_mach = of_find_device_by_node(mach_np);
+	
+	sof_pdata->hw_pdata = mach_np;
 	sof_pdata->desc = desc;
 	sof_pdata->dev = &pdev->dev;
 	sof_pdata->platform = dev_name(dev);
+	sof_pdata->machine = 1;
 
 	sof_pdata->fw_filename = desc->nocodec_fw_filename;
 	sof_pdata->tplg_filename = desc->nocodec_tplg_filename;
