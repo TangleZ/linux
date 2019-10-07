@@ -2294,7 +2294,7 @@ static int dpcm_fe_dai_do_trigger(struct snd_pcm_substream *substream, int cmd)
 	case SND_SOC_DPCM_TRIGGER_PRE:
 		/* call trigger on the frontend before the backend. */
 
-		dev_dbg(fe->dev, "ASoC: pre trigger FE %s cmd %d\n",
+		dev_info(fe->dev, "ASoC: pre trigger FE %s cmd %d\n",
 				fe->dai_link->name, cmd);
 
 		ret = soc_pcm_trigger(substream, cmd);
@@ -2314,7 +2314,7 @@ static int dpcm_fe_dai_do_trigger(struct snd_pcm_substream *substream, int cmd)
 			goto out;
 		}
 
-		dev_dbg(fe->dev, "ASoC: post trigger FE %s cmd %d\n",
+		dev_info(fe->dev, "ASoC: post trigger FE %s cmd %d\n",
 				fe->dai_link->name, cmd);
 
 		ret = soc_pcm_trigger(substream, cmd);

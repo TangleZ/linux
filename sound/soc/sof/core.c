@@ -296,6 +296,8 @@ static int sof_probe_continue(struct snd_sof_dev *sdev)
 	int size;
 	int ret;
 
+	pr_info("xxx: sof_probe_continue\n");
+
 	/* probe the DSP hardware */
 	ret = snd_sof_probe(sdev);
 	if (ret < 0) {
@@ -371,6 +373,9 @@ static int sof_probe_continue(struct snd_sof_dev *sdev)
 		goto fw_run_err;
 	}
 
+	ret = snd_sof_device_register(sdev);
+
+#if 0
 	drv_name = plat_data->machine->drv_name;
 	mach = (const void *)plat_data->machine;
 	size = sizeof(*plat_data->machine);
@@ -384,10 +389,11 @@ static int sof_probe_continue(struct snd_sof_dev *sdev)
 		ret = PTR_ERR(plat_data->pdev_mach);
 		goto fw_run_err;
 	}
-
-	dev_dbg(sdev->dev, "created machine %s\n",
+#endif
+#if 0
+	dev_info(sdev->dev, "created machine %s\n",
 		dev_name(&plat_data->pdev_mach->dev));
-
+#endif
 	if (plat_data->sof_probe_complete)
 		plat_data->sof_probe_complete(sdev->dev);
 

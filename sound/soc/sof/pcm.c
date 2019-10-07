@@ -601,8 +601,6 @@ capture:
 static int sof_pcm_dai_link_fixup(struct snd_soc_pcm_runtime *rtd,
 				  struct snd_pcm_hw_params *params)
 {
-	return 0;
-
 	struct snd_interval *rate = hw_param_interval(params,
 			SNDRV_PCM_HW_PARAM_RATE);
 	struct snd_interval *channels = hw_param_interval(params,
@@ -711,6 +709,8 @@ static int sof_pcm_probe(struct snd_soc_component *component)
 	if (!tplg_filename)
 		return -ENOMEM;
 
+	pr_info("Loading topology ... %s\n", tplg_filename);
+
 	ret = snd_sof_load_topology(sdev, tplg_filename);
 	if (ret < 0) {
 		dev_err(sdev->dev, "error: failed to load DSP topology %d\n",
@@ -741,7 +741,7 @@ void snd_sof_new_platform_drv(struct snd_sof_dev *sdev)
 	struct snd_sof_pdata *plat_data = sdev->pdata;
 	const char *drv_name;
 
-	drv_name = plat_data->machine->drv_name;
+	drv_name = "cs42888";///plat_data->machine->drv_name;
 
 	pd->name = "sof-audio-component";
 	pd->probe = sof_pcm_probe;

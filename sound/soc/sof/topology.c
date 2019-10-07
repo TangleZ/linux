@@ -15,6 +15,8 @@
 #include "sof-priv.h"
 #include "ops.h"
 
+#define DEBUG 1
+
 #define COMP_ID_UNASSIGNED		0xffffffff
 /*
  * Constants used in the computation of linear volume gain
@@ -1131,8 +1133,11 @@ static int sof_connect_dai_widget(struct snd_soc_component *scomp,
 	struct snd_soc_card *card = scomp->card;
 	struct snd_soc_pcm_runtime *rtd;
 
+	pr_info("xxx: sof_connect widget %s comp %s tw %s dai %s\n",
+		w->name, scomp->name, tw->name, dai->name);
+
 	list_for_each_entry(rtd, &card->rtd_list, list) {
-		dev_vdbg(sdev->dev, "tplg: check widget: %s stream: %s dai stream: %s\n",
+		dev_info(sdev->dev, "tplg: check widget: %s stream: %s dai stream: %s\n",
 			 w->name,  w->sname, rtd->dai_link->stream_name);
 
 		if (!w->sname || !rtd->dai_link->stream_name)
@@ -1146,13 +1151,13 @@ static int sof_connect_dai_widget(struct snd_soc_component *scomp,
 		case snd_soc_dapm_dai_out:
 			rtd->cpu_dai->capture_widget = w;
 			dai->name = rtd->dai_link->name;
-			dev_dbg(sdev->dev, "tplg: connected widget %s -> DAI link %s\n",
+			dev_info(sdev->dev, "tplg: connected widget %s -> DAI link %s\n",
 				w->name, rtd->dai_link->name);
 			break;
 		case snd_soc_dapm_dai_in:
 			rtd->cpu_dai->playback_widget = w;
 			dai->name = rtd->dai_link->name;
-			dev_dbg(sdev->dev, "tplg: connected widget %s -> DAI link %s\n",
+			dev_info(sdev->dev, "tplg: connected widget %s -> DAI link %s\n",
 				w->name, rtd->dai_link->name);
 			break;
 		default:
@@ -1208,7 +1213,7 @@ static int sof_widget_load_dai(struct snd_soc_component *scomp, int index,
 		return ret;
 	}
 
-	dev_dbg(sdev->dev, "dai %s: type %d index %d\n",
+	dev_info(sdev->dev, "dai %s: type %d index %d\n",
 		swidget->widget->name, comp_dai.type, comp_dai.dai_index);
 	sof_dbg_comp_config(scomp, &comp_dai.config);
 

@@ -141,9 +141,9 @@
 		regulator-always-on;
 	};
 
-	sound-cs42888 {
+	sound_cs42888: sound_cs42888 {
 		compatible = "fsl,imx8qm-sabreauto-cs42888",
-				"fsl,imx-audio-cs42888";
+			"fsl,imx-audio-cs42888";
 		model = "imx-cs42888";
 		esai-controller = <&esai0>;
 		audio-codec = <&cs42888>;

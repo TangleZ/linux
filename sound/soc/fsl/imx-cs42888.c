@@ -205,7 +205,7 @@ static int imx_cs42888_surround_startup(struct snd_pcm_substream *substream)
 
 static struct snd_soc_ops imx_cs42888_surround_ops = {
 	.startup = imx_cs42888_surround_startup,
-	.hw_params = imx_cs42888_surround_hw_params,
+//	.hw_params = imx_cs42888_surround_hw_params,
 	.hw_free = imx_cs42888_surround_hw_free,
 };
 
@@ -215,7 +215,7 @@ static struct snd_soc_ops imx_cs42888_surround_ops = {
  * parameter, so backend can't use the startup.
  */
 static struct snd_soc_ops imx_cs42888_surround_ops_be = {
-	.hw_params = imx_cs42888_surround_hw_params,
+//	.hw_params = imx_cs42888_surround_hw_params,
 	.hw_free = imx_cs42888_surround_hw_free,
 };
 
@@ -239,7 +239,7 @@ static const struct snd_soc_dapm_route audio_map[] = {
 	{"AIN1R", NULL, "Line In Jack"},
 	{"AIN2L", NULL, "Line In Jack"},
 	{"AIN2R", NULL, "Line In Jack"},
-	{"Playback",  NULL, "CPU-Playback"},/* dai route for be and fe */
+	{"Playback",  NULL, "ESAI0.OUT"},/* dai route for be and fe */
 	{"CPU-Capture",  NULL, "Capture"},
 	{"CPU-Playback",  NULL, "ASRC-Playback"},
 	{"ASRC-Capture",  NULL, "CPU-Capture"},
@@ -251,6 +251,8 @@ static int be_hw_params_fixup(struct snd_soc_pcm_runtime *rtd,
 	struct imx_priv *priv = &card_priv;
 	struct snd_interval *rate;
 	struct snd_mask *mask;
+
+	return 0;
 
 	if (!priv->asrc_pdev)
 		return -EINVAL;
@@ -274,13 +276,19 @@ SND_SOC_DAILINK_DEFS(hifi_fe,
 	DAILINK_COMP_ARRAY(COMP_EMPTY()),
 	DAILINK_COMP_ARRAY(COMP_DUMMY()),
 	DAILINK_COMP_ARRAY(COMP_EMPTY()));
-
+#if 0
 SND_SOC_DAILINK_DEFS(hifi_be,
-	DAILINK_COMP_ARRAY(COMP_EMPTY()),
-	DAILINK_COMP_ARRAY(COMP_CODEC(NULL, "cs42888")),
-	DAILINK_COMP_ARRAY(COMP_DUMMY()));
+	DAILINK_COMP_ARRAY(COMP_CPU("596e8000.dsp")),
+	DAILINK_COMP_ARRAY(COMP_CODEC("cs42xx8.2-0048", "cs42888")),
+	DAILINK_COMP_ARRAY(COMP_PLATFORM("596e8000.dsp")));
+#endif
+SND_SOC_DAILINK_DEFS(hifi_be,
+	DAILINK_COMP_ARRAY(COMP_CPU("596e8000.dsp")),
+	DAILINK_COMP_ARRAY(COMP_CODEC("cs42xx8.2-0048", "cs42888")),
+	DAILINK_COMP_ARRAY(COMP_PLATFORM("596e8000.dsp")));
 
 static struct snd_soc_dai_link imx_cs42888_dai[] = {
+#if 0
 	{
 		.name = "HiFi",
 		.stream_name = "HiFi",
@@ -298,9 +306,10 @@ static struct snd_soc_dai_link imx_cs42888_dai[] = {
 		.dpcm_merged_chan = 1,
 		SND_SOC_DAILINK_REG(hifi_fe),
 	},
+#endif
 	{
-		.name = "HiFi-ASRC-BE",
-		.stream_name = "HiFi-ASRC-BE",
+		.name = "ESAI0-Codec",
+		.stream_name = "ESAI0-Codec",
 		.no_pcm = 1,
 		.ignore_pmdown_time = 1,
 		.dpcm_playback = 1,
@@ -336,6 +345,7 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 	int ret;
 	u32 width;
 
+	pr_info("xxx: imx_cs42228_probe\n");
 	priv->pdev = pdev;
 	priv->asrc_pdev = NULL;
 
@@ -346,8 +356,8 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 	codec_np = of_parse_phandle(pdev->dev.of_node, "audio-codec", 0);
 	if (!esai_np || !codec_np) {
 		dev_err(&pdev->dev, "phandle missing or invalid\n");
-		ret = -EINVAL;
-		goto fail;
+		//ret = -EINVAL;
+		//goto fail;
 	}
 
 	asrc_np = of_parse_phandle(pdev->dev.of_node, "asrc-controller", 0);
@@ -359,8 +369,8 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 	esai_pdev = of_find_device_by_node(esai_np);
 	if (!esai_pdev) {
 		dev_err(&pdev->dev, "failed to find ESAI platform device\n");
-		ret = -EINVAL;
-		goto fail;
+		//ret = -EINVAL;
+		//goto fail;
 	}
 
 	if (priv->is_codec_rpmsg) {
@@ -382,13 +392,14 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 
 	} else {
 		struct i2c_client *codec_dev;
-
+		pr_info("xxx: sof: Getting codec %pOF\n", codec_np);
 		codec_dev = of_find_i2c_device_by_node(codec_np);
 		if (!codec_dev || !codec_dev->dev.driver) {
 			dev_err(&pdev->dev, "failed to find codec platform device\n");
 			ret = -EPROBE_DEFER;
 			goto fail;
 		}
+		pr_info("xxx: codec dev %px\n", codec_dev);
 
 		priv->codec_clk = devm_clk_get(&codec_dev->dev, NULL);
 		if (IS_ERR(priv->codec_clk)) {
@@ -398,6 +409,10 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 		}
 	}
 
+	snd_soc_card_imx_cs42888.num_links = 1;
+//	imx_cs42888_dai[0].codecs->of_node   = codec_np;
+
+#if 0
 	if (priv->is_codec_rpmsg) {
 		imx_cs42888_dai[0].codecs->name     = "rpmsg-audio-codec-cs42888";
 		imx_cs42888_dai[0].codecs->dai_name = "cs42888";
@@ -411,6 +426,7 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 		imx_cs42888_dai[0].codecs->of_node   = codec_np;
 	}
 
+
 	/*if there is no asrc controller, we only enable one device*/
 	if (!asrc_pdev) {
 		imx_cs42888_dai[0].cpus->dai_name    = dev_name(&esai_pdev->dev);
@@ -419,11 +435,13 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 		snd_soc_card_imx_cs42888.num_dapm_routes =
 			ARRAY_SIZE(audio_map) - 2;
 	} else {
+#if 0
 		imx_cs42888_dai[0].cpus->dai_name    = dev_name(&esai_pdev->dev);
 		imx_cs42888_dai[0].platforms->of_node = esai_np;
 		imx_cs42888_dai[1].cpus->of_node    = asrc_np;
 		imx_cs42888_dai[1].platforms->of_node   = asrc_np;
 		imx_cs42888_dai[2].cpus->dai_name    = dev_name(&esai_pdev->dev);
+#endif
 		snd_soc_card_imx_cs42888.num_links = 3;
 
 		if (priv->is_codec_rpmsg) {
@@ -453,14 +471,17 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 		else
 			priv->asrc_format = SNDRV_PCM_FORMAT_S16_LE;
 	}
+#endif
+	pr_info("xxx: sof : esaip dev %px\n", esai_pdev);
 
+#if 0
 	priv->esai_clk = devm_clk_get(&esai_pdev->dev, "extal");
 	if (IS_ERR(priv->esai_clk)) {
 		ret = PTR_ERR(priv->esai_clk);
 		dev_err(&esai_pdev->dev, "failed to get cpu clk: %d\n", ret);
 		goto fail;
 	}
-
+#endif
 	priv->is_codec_master = false;
 	if (of_property_read_bool(pdev->dev.of_node, "codec-master"))
 		priv->is_codec_master = true;
@@ -469,6 +490,7 @@ static int imx_cs42888_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, &snd_soc_card_imx_cs42888);
 
+	pr_info("xxx: sof: register card now\n");
 	ret = snd_soc_register_card(&snd_soc_card_imx_cs42888);
 	if (ret)
 		dev_err(&pdev->dev, "snd_soc_register_card failed (%d)\n", ret);
