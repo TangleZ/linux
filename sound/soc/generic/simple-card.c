@@ -74,6 +74,21 @@ static void simple_parse_convert(struct device *dev,
 	of_node_put(node);
 }
 
+static void simple_parse_force_dpcm(struct device *dev,
+				 struct device_node *np,
+				 unsigned int *force_dpcm)
+{
+	struct device_node *top = dev->of_node;
+	struct device_node *node = of_get_parent(np);
+
+	asoc_simple_parse_force_dpcm(dev, top,  PREFIX, force_dpcm);
+	asoc_simple_parse_force_dpcm(dev, node, PREFIX, force_dpcm);
+	asoc_simple_parse_force_dpcm(dev, node, NULL,   force_dpcm);
+	asoc_simple_parse_force_dpcm(dev, np,   NULL,   force_dpcm);
+
+	of_node_put(node);
+}
+
 static void simple_parse_mclk_fs(struct device_node *top,
 				 struct device_node *cpu,
 				 struct device_node *codec,
@@ -354,6 +369,7 @@ static int simple_for_each_link(struct asoc_simple_priv *priv,
 		struct asoc_simple_data adata;
 		struct device_node *codec;
 		struct device_node *np;
+		unsigned int force_dpcm = 0;
 		int num = of_get_child_count(node);
 
 		/* get codec */
@@ -369,15 +385,22 @@ static int simple_for_each_link(struct asoc_simple_priv *priv,
 		for_each_child_of_node(node, np)
 			simple_parse_convert(dev, np, &adata);
 
+		/* get force-dpcm property */
+		for_each_child_of_node(node, np)
+			simple_parse_force_dpcm(dev, np, &force_dpcm);
+
+		pr_info("xxx: sof: This is force dpcm %d %pF %pF\n", force_dpcm,
+			func_noml, func_dpcm);
 		/* loop for all CPU/Codec node */
 		for_each_child_of_node(node, np) {
 			/*
 			 * It is DPCM
 			 * if it has many CPUs,
-			 * or has convert-xxx property
+			 * or it has convert-xxx property
+			 * or it has force-dpcm property
 			 */
 			if (dpcm_selectable &&
-			    (num > 2 ||
+			    (num > 2 || force_dpcm ||
 			     adata.convert_rate || adata.convert_channels))
 				ret = func_dpcm(priv, np, codec, li, is_top);
 			/* else normal sound */
@@ -679,6 +702,11 @@ static int asoc_simple_probe(struct platform_device *pdev)
 					sizeof(*dai_props->codec_dai));
 	}
 
+#if 1
+	ret = snd_soc_fixup_dai_links_platform_name(card, "596e8000.dsp");
+	if (ret)
+		return ret;
+#endif
 	snd_soc_card_set_drvdata(card, priv);
 
 	asoc_simple_debug_info(priv);

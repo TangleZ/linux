@@ -48,6 +48,7 @@ struct asoc_simple_priv {
 		struct asoc_simple_data adata;
 		struct snd_soc_codec_conf *codec_conf;
 		unsigned int mclk_fs;
+		unsigned int force_dpcm;
 	} *dai_props;
 	struct asoc_simple_jack hp_jack;
 	struct asoc_simple_jack mic_jack;
@@ -120,6 +121,9 @@ void asoc_simple_convert_fixup(struct asoc_simple_data *data,
 void asoc_simple_parse_convert(struct device *dev,
 			       struct device_node *np, char *prefix,
 			       struct asoc_simple_data *data);
+void asoc_simple_parse_force_dpcm(struct device *dev,
+				  struct device_node *np, char *prefix,
+				  unsigned int *force_dpcm);
 
 int asoc_simple_parse_routing(struct snd_soc_card *card,
 				      char *prefix);

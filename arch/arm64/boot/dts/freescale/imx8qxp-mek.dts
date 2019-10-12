@@ -225,6 +225,7 @@
 
 	cs42888: cs42888@48 {
 		compatible = "cirrus,cs42888";
+		#sound-dai-cells = <0>;
 		reg = <0x48>;
 		clocks = <&mclkout0_lpcg 0>;
 		clock-names = "mclk";

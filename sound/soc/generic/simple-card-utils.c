@@ -52,6 +52,23 @@ void asoc_simple_parse_convert(struct device *dev,
 }
 EXPORT_SYMBOL_GPL(asoc_simple_parse_convert);
 
+void asoc_simple_parse_force_dpcm(struct device *dev,
+			       struct device_node *np,
+			       char *prefix,
+			       unsigned int *force_dpcm)
+{
+	char prop[128];
+
+	if (!prefix)
+		prefix = "";
+
+	/* dpcm property */
+	snprintf(prop, sizeof(prop), "%s%s", prefix, "force-dpcm");
+	if (of_find_property(np, prop, NULL))
+		*force_dpcm = 1;
+}
+EXPORT_SYMBOL_GPL(asoc_simple_parse_force_dpcm);
+
 int asoc_simple_parse_daifmt(struct device *dev,
 			     struct device_node *node,
 			     struct device_node *codec,
@@ -350,12 +367,14 @@ void asoc_simple_canonicalize_platform(struct snd_soc_dai_link *dai_link)
 	if (!dai_link->platforms->of_node)
 		dai_link->platforms->of_node = dai_link->cpus->of_node;
 
+#if 0
 	/*
 	 * DPCM BE can be no platform.
 	 * Alloced memory will be waste, but not leak.
 	 */
 	if (!dai_link->platforms->of_node)
 		dai_link->num_platforms = 0;
+#endif
 }
 EXPORT_SYMBOL_GPL(asoc_simple_canonicalize_platform);
 
