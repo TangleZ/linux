@@ -173,7 +173,8 @@ static int sof_acpi_probe(struct platform_device *pdev)
 	mach = devm_kzalloc(dev, sizeof(*mach), GFP_KERNEL);
 	if (!mach)
 		return -ENOMEM;
-	ret = sof_nocodec_setup(dev, sof_pdata, mach, desc, ops);
+	mach->drv_name = "sof-nocodec";
+	ret = sof_nocodec_setup(dev, sof_pdata, desc, ops);
 	if (ret < 0)
 		return ret;
 #else
