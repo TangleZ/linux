@@ -283,9 +283,9 @@ int sof_machine_check(struct snd_sof_dev *sdev)
 		return -ENOMEM;
 
 	machine->drv_name = "sof-nocodec";
-
-	ret = sof_nocodec_setup(sdev->dev, plat_data,
-				plat_data->desc, plat_data->desc->ops);
+	plat_data->fw_filename = plat_data->desc->nocodec_fw_filename;
+	plat_data->tplg_filename = plat_data->desc->nocodec_tplg_filename;
+	ret = sof_nocodec_setup(sdev->dev, plat_data->desc->ops);
 	if (ret < 0)
 		return ret;
 
