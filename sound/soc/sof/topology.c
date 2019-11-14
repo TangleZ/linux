@@ -114,12 +114,14 @@ static int ipc_trigger(struct snd_sof_widget *swidget, int cmd)
 	stream.hdr.cmd = SOF_IPC_GLB_STREAM_MSG | cmd;
 	stream.comp_id = swidget->comp_id;
 
+	printk("ipc trigger cmd :%d, comp_id %d\n", cmd, stream.comp_id);
 	/* send IPC to the DSP */
 	ret = sof_ipc_tx_message(sdev->ipc, stream.hdr.cmd, &stream,
 				 sizeof(stream), &reply, sizeof(reply));
 	if (ret < 0)
 		dev_err(sdev->dev, "error: failed to trigger %s\n",
 			swidget->widget->name);
+	printk("return ipc trigger\n");
 
 	return ret;
 }
@@ -398,6 +400,7 @@ static const struct sof_process_types sof_process[] = {
 	{"CHAN_SELECTOR", SOF_PROCESS_CHAN_SELECTOR, SOF_COMP_SELECTOR},
 	{"MUX", SOF_PROCESS_MUX, SOF_COMP_MUX},
 	{"DEMUX", SOF_PROCESS_DEMUX, SOF_COMP_DEMUX},
+	{"AMP", SOF_PROCESS_AMP, SOF_COMP_AMP},
 };
 
 static enum sof_ipc_process_type find_process(const char *name)
@@ -1510,6 +1513,57 @@ static int sof_widget_load_mixer(struct snd_soc_component *scomp, int index,
 }
 
 /*
+ * decoder topology
+ */
+
+static int sof_widget_load_decoder(struct snd_soc_component *scomp, int index,
+				 struct snd_sof_widget *swidget,
+				 struct snd_soc_tplg_dapm_widget *tw,
+				 struct sof_ipc_comp_reply *r)
+{
+	struct snd_sof_dev *sdev = snd_soc_component_get_drvdata(scomp);
+	struct snd_soc_tplg_private *private = &tw->priv;
+	struct sof_ipc_comp_process *codec;
+	int ret;
+
+	codec = kzalloc(sizeof(*codec), GFP_KERNEL);
+	if (!codec)
+		return -ENOMEM;
+
+	/* configure codec IPC message */
+	codec->comp.hdr.size = sizeof(*codec);
+	codec->comp.hdr.cmd = SOF_IPC_GLB_TPLG_MSG | SOF_IPC_TPLG_COMP_NEW;
+	codec->comp.id = swidget->comp_id;
+	codec->comp.type = SOF_COMP_CODEC;
+	codec->comp.pipeline_id = index;
+	codec->config.hdr.size = sizeof(codec->config);
+
+
+	printk("codec id %d, type %d \n", swidget->comp_id, SOF_COMP_CODEC);
+	ret = sof_parse_tokens(scomp, &codec->config, comp_tokens,
+			       ARRAY_SIZE(comp_tokens), private->array,
+			       le32_to_cpu(private->size));
+	if (ret != 0) {
+		dev_err(sdev->dev, "error: parse codec.cfg tokens failed %d\n",
+			private->size);
+		kfree(codec);
+		return ret;
+	}
+
+	sof_dbg_comp_config(scomp, &codec->config);
+
+	swidget->private = codec;
+
+	ret = sof_ipc_tx_message(sdev->ipc, codec->comp.hdr.cmd, codec,
+				 sizeof(*codec), r, sizeof(*r));
+	if (ret < 0)
+		kfree(codec);
+
+	return ret;
+}
+
+
+/*
  * Mux topology
  */
 static int sof_widget_load_mux(struct snd_soc_component *scomp, int index,
@@ -2007,6 +2061,10 @@ static int sof_widget_ready(struct snd_soc_component *scomp, int index,
 		swidget->comp_id, index, swidget->id, tw->name,
 		strnlen(tw->sname, SNDRV_CTL_ELEM_ID_NAME_MAXLEN) > 0
 			? tw->sname : "none");
+	printk( "tplg: ready widget id %d pipe %d type %d name : %s stream %s\n",
+		swidget->comp_id, index, swidget->id, tw->name,
+		strnlen(tw->sname, SNDRV_CTL_ELEM_ID_NAME_MAXLEN) > 0
+			? tw->sname : "none");
 
 	/* handle any special case widgets */
 	switch (w->id) {
@@ -2031,7 +2089,11 @@ static int sof_widget_ready(struct snd_soc_component *scomp, int index,
 	case snd_soc_dapm_mixer:
 		ret = sof_widget_load_mixer(scomp, index, swidget, tw, &reply);
 		break;
+	case snd_soc_dapm_decoder:
+		ret = sof_widget_load_decoder(scomp, index, swidget, tw, &reply);
+		break;
 	case snd_soc_dapm_pga:
+		printk("create volume component ****\n");
 		ret = sof_widget_load_pga(scomp, index, swidget, tw, &reply);
 		/* Find scontrol for this pga and set readback offset*/
 		list_for_each_entry(scontrol, &sdev->kcontrol_list, list) {
